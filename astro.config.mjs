@@ -1,6 +1,6 @@
 import starlight from "@astrojs/starlight";
 import mermaid from "astro-mermaid";
-import starlightOpenAPI from 'starlight-openapi';
+import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
 // @ts-check
 import { defineConfig } from "astro/config";
 
@@ -90,17 +90,18 @@ starlight({
 						},
 					],
 				},
-				{
-					label: 'API Reference',
-					autogenerate: { directory: 'api' },
-				},
+				// Add the generated OpenAPI documentation to the sidebar
+				...openAPISidebarGroups,
 			],
 			plugins: [
 				starlightOpenAPI([
 					{
 						base: 'api',
-						label: 'Cars API',
 						schema: './openapi/cars-api.yaml',
+						sidebar: {
+							label: 'Cars API',
+							collapsed: false,
+						},
 					},
 				]),
 			],
