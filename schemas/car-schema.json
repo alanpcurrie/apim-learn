@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://api.example.com/schemas/car.json",
+  "title": "Car",
+  "description": "A car from the Fast & Furious franchise",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "The unique identifier for a car",
+      "type": "integer",
+      "minimum": 1
+    },
+    "make": {
+      "description": "The manufacturer of the car",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50,
+      "examples": ["Toyota", "Dodge", "Nissan", "Mazda"]
+    },
+    "model": {
+      "description": "The model name of the car",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": ["Supra", "Charger", "Skyline GT-R R34"]
+    },
+    "year": {
+      "description": "The year the car was manufactured",
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2024
+    },
+    "driver": {
+      "description": "The name of the primary driver in the franchise",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": ["Brian O'Conner", "Dominic Toretto", "Letty Ortiz"]
+    },
+    "specs": {
+      "description": "Technical specifications and modifications",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  },
+  "required": ["id", "make", "model", "year", "driver", "specs"],
+  "additionalProperties": false
+}

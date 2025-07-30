@@ -1,0 +1,60 @@
+extends: ["spectral:oas", "spectral:asyncapi"]
+
+rules:
+  # Disable some default rules that might be too strict for this tutorial
+  operation-operationId-unique: off
+  
+  # Custom rules for the Cars API
+  cars-api-version-format:
+    description: API version should follow semantic versioning
+    given: $.info.version
+    severity: warn
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+
+  cars-api-description-min-length:
+    description: API description should be meaningful
+    given: $.info.description
+    severity: error
+    then:
+      function: length
+      functionOptions:
+        min: 30
+
+  operation-description-required:
+    description: Operations must have descriptions
+    given: $.paths[*][*]
+    severity: error
+    then:
+      - field: description
+        function: truthy
+
+  example-value-or-externalValue:
+    description: Examples should have either value or externalValue
+    given: $.paths[*][*].responses[*].content[*].examples[*]
+    severity: warn
+    then:
+      function: xor
+      functionOptions:
+        properties:
+          - value
+          - externalValue
+
+  response-error-structure:
+    description: Error responses should follow consistent structure
+    given: $.paths[*][*].responses[?(@property >= 400)].content[*].schema
+    severity: warn
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required:
+            - properties
+          properties:
+            properties:
+              type: object
+              required:
+                - error

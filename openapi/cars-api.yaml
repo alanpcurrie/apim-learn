@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: Fast & Furious Cars API
+  description: API for fetching data on cars from the Fast & Furious franchise. This API follows RFC 9457 for error responses.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@example.com
+    url: https://example.com/support
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://api-staging.example.com/v1
+    description: Staging server
+tags:
+  - name: Cars
+    description: Operations related to Fast & Furious cars
+paths:
+  /cars:
+    get:
+      summary: List all cars
+      description: Retrieves a list of all cars from the Fast & Furious franchise with their specifications and drivers.
+      operationId: listCars
+      tags:
+        - Cars
+      responses:
+        '200':
+          description: A list of cars with example data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Car'
+              examples:
+                example1:
+                  summary: A list of Fast & Furious cars
+                  value:
+                    - id: 1
+                      make: Toyota
+                      model: Supra
+                      year: 1995
+                      driver: Brian O'Conner
+                      specs: "2JZ engine, nitro boost"
+                    - id: 2
+                      make: Dodge
+                      model: Charger
+                      year: 1970
+                      driver: Dominic Toretto
+                      specs: "Supercharged V8 engine"
+                    - id: 3
+                      make: Nissan
+                      model: Skyline GT-R R34
+                      year: 1999
+                      driver: Brian O'Conner
+                      specs: "RB26DETT engine, all-wheel drive"
+                    - id: 4
+                      make: Mazda
+                      model: RX-7
+                      year: 1997
+                      driver: Dominic Toretto
+                      specs: "Rotary engine, wide body kit"
+                    - id: 5
+                      make: Mitsubishi
+                      model: Eclipse
+                      year: 1995
+                      driver: Brian O'Conner
+                      specs: "4G63 engine, green underglow"
+                    - id: 6
+                      make: Honda
+                      model: S2000
+                      year: 2001
+                      driver: Suki
+                      specs: "VTEC engine, pink paint job"
+                    - id: 7
+                      make: Ford
+                      model: GT40
+                      year: 1966
+                      driver: Brian O'Conner
+                      specs: "V8 engine, Le Mans heritage"
+                    - id: 8
+                      make: Plymouth
+                      model: Barracuda
+                      year: 1970
+                      driver: Letty Ortiz
+                      specs: "Hemi engine, muscle car power"
+        '401':
+          $ref: 'components/problem-details.yaml#/components/responses/Unauthorized'
+        '429':
+          $ref: 'components/problem-details.yaml#/components/responses/TooManyRequests'
+        '500':
+          $ref: 'components/problem-details.yaml#/components/responses/InternalServerError'
+  /cars/{carId}:
+    get:
+      summary: Get a specific car by ID
+      description: Retrieves detailed information about a specific car from the Fast & Furious franchise by its unique identifier.
+      operationId: getCarById
+      tags:
+        - Cars
+      parameters:
+        - name: carId
+          in: path
+          required: true
+          description: ID of the car to fetch
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Details of a specific car
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+              examples:
+                example1:
+                  summary: Details of a specific Fast & Furious car
+                  value:
+                    id: 1
+                    make: Toyota
+                    model: Supra
+                    year: 1995
+                    driver: Brian O'Conner
+                    specs: "2JZ engine, nitro boost"
+        '401':
+          $ref: 'components/problem-details.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: 'components/problem-details.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: 'components/problem-details.yaml#/components/responses/NotFound'
+        '429':
+          $ref: 'components/problem-details.yaml#/components/responses/TooManyRequests'
+        '500':
+          $ref: 'components/problem-details.yaml#/components/responses/InternalServerError'
+components:
+  schemas:
+    Car:
+      type: object
+      properties:
+        id:
+          type: integer
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        driver:
+          type: string
+        specs:
+          type: string
+      required:
+        - id
+        - make
+        - model
+        - year
+        - driver
+        - specs

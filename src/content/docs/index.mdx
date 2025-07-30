@@ -1,0 +1,67 @@
+---
+title: Welcome to Learn APIM
+description: Get started building your docs site with Starlight.
+template: splash
+hero:
+  tagline: lets learn about APIM
+  image:
+    light: ../../assets/apim_logo.png
+    dark: ../../assets/apim_logo-dark.png
+  actions:
+    - text: Get Started Now
+      link: /tutorials/01-getting-started/
+      icon: right-arrow
+    - text: Read the Azure APIM docs
+      link: https://docs.microsoft.com/azure/api-management/
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What is Azure API Management?
+
+<CardGrid>
+	<Card title="For Developers" icon="laptop">
+		APIM is a gateway that sits in front of your APIs. It lets you:
+		- Expose mock/stable/test APIs with versioning
+		- Add caching, rate limiting, and retries declaratively  
+		- Enforce headers, validate JWTs, inspect/transform requests/responses
+		- Debug traffic and centralize logging
+		- Onboard consumers with a real developer portal
+		
+		*It's like nginx + Kong + Stoplight + mock server all in one.*
+	</Card>
+	<Card title="For Product Managers" icon="bars">
+		APIM gives you control and insight over how your APIs are used. You can:
+		- Launch faster by mocking APIs before backend is built
+		- Protect APIs with usage quotas and keys
+		- Create API products for partners or clients
+		- See usage analytics, errors, and adoption
+		- Manage versions cleanly without breaking users
+		
+		*It's your product gatekeeper + traffic cop + insight dashboard.*
+	</Card>
+	<Card title="For Dominic Toretto" icon="star">
+		You don't let just anyone drive your ride. API Management's the bouncer at the garage—it checks their key, tracks how fast they go, and locks down the NOS if they're getting greedy. Wanna show off the car without letting them wreck it? APIM mocks it up, flashes the lights, and lets them try it in the sim first.
+		
+		*It's all about control. And family.*
+	</Card>
+</CardGrid>
+
+## Next steps
+
+<CardGrid>
+	<Card title="Get Started" icon="rocket">
+		Begin your Azure APIM journey with our [Getting Started Tutorial](/tutorials/01-getting-started/).
+	</Card>
+	<Card title="Provision Azure Resources" icon="setting">
+		Create your Azure resources with [Provision Azure Resources](/tutorials/02-provision-azure-resources/) (15-45 minutes). **Free tier: 1M operations/month!**
+	</Card>
+	<Card title="Deploy Your API" icon="seti:config">
+		Learn how to [Deploy the Fast & Furious Cars API](/guides/deploy-api/) to Azure APIM.
+	</Card>
+	<Card title="Reference Docs" icon="open-book">
+		Check our [Makefile Commands Reference](/reference/makefile-commands/) and [Azure APIM Docs](https://docs.microsoft.com/azure/api-management/).
+	</Card>
+</CardGrid>

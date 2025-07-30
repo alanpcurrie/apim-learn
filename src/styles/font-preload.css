@@ -1,0 +1,14 @@
+/* Font Preloading for Zed Plex */
+/* This helps with performance by preloading the most important font files */
+
+/* Preload the most commonly used font weights */
+/* These would typically be added to the HTML head, but we can provide the CSS here for reference */
+
+/*
+Add these link tags to your HTML head for optimal performance:
+
+<link rel="preload" href="/fonts/zed-plex/ZedPlexMono-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/fonts/zed-plex/ZedPlexMono-Medium.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/fonts/zed-plex/ZedPlexSans-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/fonts/zed-plex/ZedPlexSans-Medium.ttf" as="font" type="font/ttf" crossorigin>
+*/

@@ -1,0 +1,27 @@
+{
+  "name": "apim-learn",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "spectral lint openapi/cars-api.yaml --format stylish",
+    "lint:quiet": "spectral lint openapi/cars-api.yaml --quiet --format stylish",
+    "lint:json": "spectral lint openapi/cars-api.yaml --format json",
+    "lint:rfc9457": "spectral lint openapi/cars-api.yaml --ruleset .spectral-rfc9457.yaml --format stylish",
+    "lint:all": "spectral lint openapi/cars-api.yaml openapi/components/problem-details.yaml --format stylish",
+    "validate": "spectral lint openapi/cars-api.yaml --ruleset spectral:oas --format stylish"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.35.1",
+    "@stoplight/spectral-cli": "^6.11.0",
+    "astro": "^5.6.1",
+    "astro-mermaid": "^1.0.4",
+    "mermaid": "^11.9.0",
+    "sharp": "^0.34.2",
+    "starlight-openapi": "^0.19.1"
+  }
+}

@@ -1,0 +1,562 @@
+/* 🚀 BLEEDING EDGE CSS FEATURES SHOWCASE 2025 🚀 */
+/* Demonstrating the power of modern vanilla CSS */
+/* Features: Cascade Layers, CSS Nesting, @property, Container Queries, and more */
+
+/* ===== CASCADE LAYERS - PROPER STYLE ORGANIZATION ===== */
+/* Define layer order - most important comes last */
+@layer reset, base, components, utilities, overrides;
+
+/* ===== TYPE-SAFE CUSTOM PROPERTIES WITH @property ===== */
+/* Type safety for our golden computing theme variables */
+
+@property --accent-hue {
+  syntax: '<angle>';
+  initial-value: 45deg; /* Golden amber hue */
+  inherits: true;
+}
+
+@property --accent-saturation {
+  syntax: '<percentage>';
+  initial-value: 100%;
+  inherits: true;
+}
+
+@property --accent-lightness {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: true;
+}
+
+@property --terminal-glow-radius {
+  syntax: '<length>';
+  initial-value: 2px;
+  inherits: false;
+}
+
+@property --terminal-blink-duration {
+  syntax: '<time>';
+  initial-value: 1s;
+  inherits: false;
+}
+
+@property --scroll-progress {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: false;
+}
+
+@property --container-width {
+  syntax: '<length>';
+  initial-value: 100vw;
+  inherits: false;
+}
+
+/* ===== RESET LAYER ===== */
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ===== BASE LAYER WITH CSS NESTING ===== */
+@layer base {
+  :root {
+    /* Dynamic color system using type-safe properties */
+    --accent-color: hsl(var(--accent-hue) var(--accent-saturation) var(--accent-lightness));
+    --accent-color-light: hsl(var(--accent-hue) var(--accent-saturation) calc(var(--accent-lightness) + 20%));
+    --accent-color-dark: hsl(var(--accent-hue) var(--accent-saturation) calc(var(--accent-lightness) - 20%));
+    
+    /* Container query breakpoints */
+    --breakpoint-small: 20rem;
+    --breakpoint-medium: 40rem;
+    --breakpoint-large: 60rem;
+    
+    /* Modern color functions */
+    --terminal-green: oklch(0.7 0.3 142);
+    --terminal-amber: oklch(0.8 0.2 85);
+    --terminal-blue: oklch(0.6 0.3 240);
+    --terminal-red: oklch(0.65 0.3 25);
+  }
+
+  /* CSS Nesting - parent selector references */
+  html {
+    font-family: 'Zed Plex Sans', system-ui;
+    
+    /* Smooth scrolling with scroll-behavior */
+    scroll-behavior: smooth;
+    
+    /* Dark mode using color-scheme */
+    color-scheme: light dark;
+    
+    /* CSS Nesting for theme variants */
+    &[data-theme="dark"] {
+      --accent-hue: 142deg; /* Terminal green */
+      --accent-saturation: 80%;
+      --accent-lightness: 60%;
+      
+      /* Dark theme blueprint adjustments for better visibility */
+      & body {
+        background: 
+          /* Fine grid with good visibility on dark background */
+          linear-gradient(to right, color-mix(in srgb, var(--accent-color) 4%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 4%, transparent) 1px, transparent 1px),
+          /* Major grid overlay */
+          linear-gradient(to right, color-mix(in srgb, var(--accent-color) 6%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 6%, transparent) 1px, transparent 1px),
+          /* Terminal glow in corner */
+          radial-gradient(circle at 95% 5%, color-mix(in srgb, var(--accent-color) 4%, transparent) 0%, transparent 50%),
+          var(--sl-color-black);
+        background-size: 
+          10px 10px,   /* Fine grid - slightly tighter for terminal feel */
+          10px 10px,   /* Fine grid */
+          40px 40px,   /* Major grid - tighter spacing */
+          40px 40px,   /* Major grid */
+          100% 100%,   /* Corner accent */
+          auto;
+      }
+    }
+    
+    /* Light theme specific adjustments */
+    &[data-theme="light"], &:not([data-theme]) {
+      /* Enhanced visibility for light theme blueprint */
+      & body {
+        background: 
+          /* Fine grid with enhanced visibility on light background */
+          linear-gradient(to right, color-mix(in srgb, var(--accent-color) 8%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 8%, transparent) 1px, transparent 1px),
+          /* Major grid overlay with good contrast */
+          linear-gradient(to right, color-mix(in srgb, var(--accent-color) 12%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 12%, transparent) 1px, transparent 1px),
+          /* Subtle corner accent */
+          radial-gradient(circle at 95% 5%, color-mix(in srgb, var(--accent-color) 4%, transparent) 0%, transparent 50%),
+          var(--sl-color-black);
+        background-size: 
+          12px 12px,   /* Fine grid */
+          12px 12px,   /* Fine grid */
+          48px 48px,   /* Major grid */
+          48px 48px,   /* Major grid */
+          100% 100%,   /* Corner accent */
+          auto;
+      }
+    }
+    
+    &[data-theme="retro"] {
+      --accent-hue: 45deg; /* Amber */
+      --accent-saturation: 100%;
+      --accent-lightness: 55%;
+    }
+    
+    /* Modern focus-visible with enhanced styling */
+    &:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--accent-color) 80%, transparent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  /* Body with blueprint-style background (fallback) */
+  body {
+    background: var(--sl-color-black); /* Fallback background */
+    
+    /* Modern text rendering */
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    
+    /* Scroll-driven animations */
+    animation: scroll-progress linear;
+    animation-timeline: scroll(root);
+    
+    /* CSS Nesting for reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      & {
+        animation: none;
+        scroll-behavior: auto;
+      }
+    }
+  }
+}
+
+/* ===== COMPONENTS LAYER WITH CONTAINER QUERIES ===== */
+@layer components {
+  /* Advanced container query component */
+  .adaptive-card {
+    container-type: inline-size;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--accent-color) 5%, var(--sl-color-black));
+    
+    /* CSS Nesting with container queries */
+    & .card-header {
+      font-family: 'Zed Plex Mono', monospace;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      
+      /* Container-based responsive typography */
+      @container (width < 300px) {
+        font-size: 0.9rem;
+      }
+      
+      @container (width >= 300px) and (width < 600px) {
+        font-size: 1.1rem;
+      }
+      
+      @container (width >= 600px) {
+        font-size: 1.3rem;
+      }
+    }
+    
+    & .card-content {
+      line-height: 1.6;
+      
+      /* Nested container queries */
+      @container (width > 500px) {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        
+        & > p {
+          margin-bottom: 0.5rem;
+        }
+      }
+    }
+  }
+
+  /* Terminal-style code blocks with modern features */
+  .terminal-block {
+    background: var(--sl-color-black);
+    border: 2px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Zed Plex Mono', monospace;
+    position: relative;
+    overflow: hidden;
+    
+    /* Removed excessive backdrop blur for minimal aesthetic */
+    
+    /* CSS Nesting for pseudo-elements */
+    &::before {
+      content: "● ● ●";
+      position: absolute;
+      top: 0.5rem;
+      right: 1rem;
+      color: var(--accent-color);
+      font-size: 0.8rem;
+    }
+    
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: 
+        linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
+      opacity: 0.1;
+      animation: scan-line 2s infinite linear;
+    }
+    
+    /* Nested selectors for terminal content */
+    & code {
+      color: var(--terminal-green);
+      /* Removed text glow for minimal aesthetic */
+      
+      /* Advanced text effects */
+      &.command {
+        color: var(--terminal-amber);
+        font-weight: 500;
+      }
+      
+      &.error {
+        color: var(--terminal-red);
+        text-decoration: underline wavy;
+      }
+    }
+    
+    /* Blinking cursor with type-safe timing */
+    & .cursor {
+      background: var(--accent-color);
+      animation: blink var(--terminal-blink-duration) infinite;
+      
+      &::after {
+        content: "█";
+        color: var(--accent-color);
+      }
+    }
+  }
+
+  /* Modern sidebar with :has() selector */
+  .modern-sidebar {
+    /* CSS Nesting with advanced selectors */
+    &:has(> .sidebar-toggle:checked) {
+      transform: translateX(0);
+      
+      & ~ .main-content {
+        margin-left: 300px;
+      }
+    }
+    
+    /* Advanced logical properties */
+    padding-inline: 1rem;
+    margin-block-start: 2rem;
+    border-inline-start: 3px solid var(--accent-color);
+    
+    /* Modern scroll handling */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) transparent;
+    
+    /* CSS Nesting for links */
+    & a {
+      display: block;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      
+      /* Modern hover with color-mix */
+      &:hover {
+        background: color-mix(in srgb, var(--accent-color) 15%, transparent);
+        color: var(--accent-color-light);
+        transform: translateX(4px);
+      }
+      
+      /* Active state with enhanced styling */
+      &[aria-current="page"] {
+        background: var(--accent-color);
+        color: var(--sl-color-black);
+        font-weight: 600;
+        
+        &::after {
+          content: "→";
+          margin-left: auto;
+        }
+      }
+    }
+  }
+}
+
+/* ===== UTILITIES LAYER ===== */
+@layer utilities {
+  /* Modern utility classes with CSS nesting */
+  .text-gradient {
+    background: linear-gradient(45deg, var(--accent-color), var(--accent-color-light));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    
+    /* Fallback for unsupported browsers */
+    @supports not (background-clip: text) {
+      color: var(--accent-color);
+    }
+  }
+  
+  .glow-effect {
+    filter: drop-shadow(0 0 calc(var(--terminal-glow-radius) * 0.5) var(--accent-color));
+    
+    /* Subtle enhanced glow on hover */
+    &:hover {
+      filter: drop-shadow(0 0 var(--terminal-glow-radius) var(--accent-color));
+    }
+  }
+  
+  /* Modern responsive utilities using container queries */
+  .responsive-grid {
+    display: grid;
+    gap: 1rem;
+    
+    /* Container-based grid layout */
+    @container (width < 400px) {
+      grid-template-columns: 1fr;
+    }
+    
+    @container (width >= 400px) and (width < 800px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @container (width >= 800px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* Scroll-driven progress indicator */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--scroll-progress);
+    height: 4px;
+    background: var(--accent-color);
+    z-index: 1000;
+    
+    /* Type-safe animation */
+    animation: progress-bar linear;
+    animation-timeline: scroll(root);
+  }
+}
+
+/* ===== OVERRIDES LAYER ===== */
+@layer overrides {
+  /* High-specificity overrides when needed */
+  .force-terminal-theme {
+    --accent-hue: 142deg !important;
+    --accent-saturation: 100% !important;
+    --accent-lightness: 60% !important;
+  }
+}
+
+/* ===== MODERN ANIMATIONS & KEYFRAMES ===== */
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes progress-bar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+@keyframes scroll-progress {
+  0% { --scroll-progress: 0%; }
+  100% { --scroll-progress: 100%; }
+}
+
+/* ===== MODERN PSEUDO-CLASS SELECTORS ===== */
+/* :is() and :where() for cleaner selectors */
+:is(h1, h2, h3, h4, h5, h6):where(.terminal-style) {
+  font-family: 'Zed Plex Mono', monospace;
+  color: var(--accent-color);
+  /* Removed text glow for minimal aesthetic */
+  
+  /* CSS Nesting with modern selectors */
+  &::before {
+    content: "# ";
+    color: var(--terminal-green);
+  }
+}
+
+/* :has() for parent selection */
+.code-block:has(> code.error) {
+  border-color: var(--terminal-red);
+  background: color-mix(in srgb, var(--terminal-red) 5%, var(--sl-color-black));
+}
+
+/* ===== VIEW TRANSITIONS API ===== */
+@media (prefers-reduced-motion: no-preference) {
+  /* Enable view transitions */
+  html {
+    view-transition-name: root;
+  }
+  
+  .page-transition {
+    view-transition-name: page;
+  }
+  
+  /* Custom transition animations */
+  ::view-transition-old(page) {
+    animation: slide-out 0.3s ease-in;
+  }
+  
+  ::view-transition-new(page) {
+    animation: slide-in 0.3s ease-out;
+  }
+}
+
+@keyframes slide-out {
+  to { transform: translateX(-100%); }
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+}
+
+/* ===== MODERN COLOR SPACES & FUNCTIONS ===== */
+/* Using oklch for better color interpolation */
+.modern-colors {
+  /* Better color mixing with color-mix() */
+  background: color-mix(in oklch, var(--terminal-green) 20%, var(--sl-color-black));
+  
+  /* Relative color syntax (when supported) */
+  border-color: oklch(from var(--accent-color) calc(l * 0.8) c h);
+}
+
+/* ===== ADVANCED MEDIA QUERIES ===== */
+@media (dynamic-range: high) {
+  /* HDR displays */
+  :root {
+    --terminal-green: color(rec2020 0 0.8 0);
+    --terminal-amber: color(rec2020 0.9 0.7 0);
+  }
+}
+
+@media (color-gamut: p3) {
+  /* Wide color gamut displays */
+  :root {
+    --accent-color: color(display-p3 1 0.6 0);
+  }
+}
+
+@media (prefers-contrast: more) {
+  /* High contrast preferences */
+  :root {
+    --terminal-glow-radius: 8px;
+    --accent-saturation: 100%;
+  }
+}
+
+/* ===== ANCHOR POSITIONING (EXPERIMENTAL) ===== */
+/* Note: These properties are experimental and not yet widely supported */
+@supports (anchor-name: --tooltip) {
+  .tooltip-anchor {
+    anchor-name: --tooltip;
+  }
+  
+  .tooltip {
+    position: absolute;
+    /* position-anchor: --tooltip; */ /* Experimental - commented out for now */
+    /* inset-area: top; */ /* Experimental - commented out for now */
+    margin-bottom: 8px;
+    /* Fallback positioning */
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* ===== SCROLL-DRIVEN ANIMATIONS ===== */
+@supports (animation-timeline: scroll()) {
+  .parallax-element {
+    animation: parallax linear;
+    animation-timeline: scroll(nearest);
+    animation-range: entry 0% exit 100%;
+  }
+}
+
+@keyframes parallax {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50px); }
+}
+
+/* Subtle blueprint animation */
+@keyframes blueprint-pulse {
+  0%, 100% { 
+    background-position: 0 0, 0 0, 0 0, 0 0, 95% 5%, 0 0; 
+  }
+  50% { 
+    background-position: 0.5px 0.5px, 0.5px 0.5px, 1px 1px, 1px 1px, 95% 5%, 0 0; 
+  }
+}
+
+/* Apply subtle animation to blueprint pattern */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    animation: blueprint-pulse 10s ease-in-out infinite;
+  }
+}

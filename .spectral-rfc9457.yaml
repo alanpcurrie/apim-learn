@@ -1,0 +1,138 @@
+# Custom Spectral rules for RFC 9457 compliance
+extends: spectral:oas
+
+rules:
+  # Ensure all error responses use problem+json media type
+  rfc9457-error-media-type:
+    description: Error responses (4xx, 5xx) must use application/problem+json media type
+    given: $.paths[*][*].responses[?(@property >= '400' && @property < '600')].content
+    severity: error
+    then:
+      - field: application/problem+json
+        function: truthy
+      - field: application/json
+        function: falsy
+        
+  # Ensure problem details have required fields
+  rfc9457-problem-details-structure:
+    description: Problem details must include required RFC 9457 fields
+    given: $.paths[*][*].responses[?(@property >= '400' && @property < '600')].content['application/problem+json'].schema
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          oneOf:
+            - required: ['$ref']
+            - required: ['allOf']
+            - required: ['type', 'title', 'status']
+              properties:
+                type:
+                  type: object
+                title:
+                  type: object
+                status:
+                  type: object
+                  
+  # Ensure problem type URIs are absolute
+  rfc9457-absolute-type-uri:
+    description: Problem type URIs should be absolute URIs
+    given: $.components.schemas[?(@.properties.type)].properties.type
+    severity: warn
+    then:
+      - field: example
+        function: pattern
+        functionOptions:
+          match: "^https?://"
+          
+  # Ensure status codes match the response code
+  rfc9457-status-matches-response:
+    description: Problem details status should match the HTTP response code
+    given: $.paths[*][*].responses[*].content['application/problem+json'].example
+    severity: warn
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          properties:
+            status:
+              type: integer
+              
+  # Ensure all error responses have examples
+  rfc9457-error-examples:
+    description: Error responses should include examples
+    given: $.paths[*][*].responses[?(@property >= '400' && @property < '600')].content['application/problem+json']
+    severity: warn
+    then:
+      - field: example
+        function: truthy
+        
+  # Ensure problem details schemas extend base schema
+  rfc9457-extend-base-schema:
+    description: Custom problem details should extend the base ProblemDetails schema
+    given: $.components.schemas[?(@property.match(/Problem$/) && @property !== 'ProblemDetails')]
+    severity: warn
+    then:
+      - field: allOf
+        function: truthy
+        
+  # Ensure instance URIs are used for specific occurrences
+  rfc9457-instance-for-specifics:
+    description: Problem details for specific resource errors should include instance
+    given: $.paths[*][*].responses['404'].content['application/problem+json'].example
+    severity: info
+    then:
+      - field: instance
+        function: truthy
+        
+  # Ensure human-readable fields are present
+  rfc9457-human-readable:
+    description: Problem details should include human-readable title and detail
+    given: $.components.schemas.ProblemDetails.properties
+    severity: error
+    then:
+      - field: title.description
+        function: truthy
+      - field: detail.description
+        function: truthy
+        
+  # Validate extension members naming
+  rfc9457-extension-naming:
+    description: Extension members should use camelCase naming
+    given: $.components.schemas[?(@.allOf[0].$ref && @.allOf[0].$ref.match(/ProblemDetails/))].properties[*]~
+    severity: warn
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[a-z][a-zA-Z0-9]*$"
+        
+  # Ensure content negotiation is documented
+  rfc9457-content-negotiation:
+    description: APIs using RFC 9457 should document content negotiation
+    given: $.paths[*][*]
+    severity: info
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          properties:
+            parameters:
+              type: array
+              contains:
+                type: object
+                properties:
+                  name:
+                    const: Accept
+                    
+  # Validate problem type documentation
+  rfc9457-problem-type-documented:
+    description: Problem types should be documented with human-readable descriptions
+    given: $.components.schemas[?(@property.match(/Problem$/))].description
+    severity: warn
+    then:
+      function: length
+      functionOptions:
+        min: 20
