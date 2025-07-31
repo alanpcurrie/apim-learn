@@ -1,8 +1,8 @@
 import starlight from "@astrojs/starlight";
 import mermaid from "astro-mermaid";
-import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
 // @ts-check
 import { defineConfig } from "astro/config";
+import starlightOpenAPI, { openAPISidebarGroups } from "starlight-openapi";
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
 			theme: "forest",
 			autoTheme: true,
 		}),
-starlight({
+		starlight({
 			title: "Azure API Management",
 			description: "Fast \u0026 Furious Cars API Documentation",
 			customCss: [
@@ -40,8 +40,14 @@ starlight({
 					label: "Tutorials",
 					items: [
 						{ label: "Getting Started", slug: "tutorials/01-getting-started" },
-						{ label: "Provision Azure Resources", slug: "tutorials/02-provision-azure-resources" },
-						{ label: "Understanding Policies", slug: "tutorials/03-understanding-policies" },
+						{
+							label: "Provision Azure Resources",
+							slug: "tutorials/02-provision-azure-resources",
+						},
+						{
+							label: "Understanding Policies",
+							slug: "tutorials/03-understanding-policies",
+						},
 					],
 				},
 				{
@@ -50,8 +56,14 @@ starlight({
 						{ label: "Azure CLI Setup", slug: "how-to/azure-cli-setup" },
 						{ label: "Deploy the Cars API", slug: "guides/deploy-api" },
 						{ label: "Test API Endpoints", slug: "how-to/test-endpoints" },
-						{ label: "Debug Policy Issues", slug: "how-to/debug-policy-issues" },
-						{ label: "Configure JWT Authentication", slug: "how-to/configure-jwt-authentication" },
+						{
+							label: "Debug Policy Issues",
+							slug: "how-to/debug-policy-issues",
+						},
+						{
+							label: "Configure JWT Authentication",
+							slug: "how-to/configure-jwt-authentication",
+						},
 						{
 							label: "Configure Client Certificates",
 							slug: "guides/configure-client-certificates",
@@ -62,15 +74,32 @@ starlight({
 							slug: "guides/manage-api-consumption",
 						},
 						{ label: "Clean Up Resources", slug: "how-to/cleanup-resources" },
+						{
+							label: "Optional: Deploy with Terraform Infrastructure",
+							slug: "how-to/terraform-infrastructure",
+						},
+						{
+							label: "Clean Up Terraform Infrastructure",
+							slug: "how-to/terraform-cleanup",
+						},
 					],
 				},
 				// Explanation (Understanding-Oriented)
 				{
 					label: "Explanation",
 					items: [
-						{ label: "Architecture Overview", slug: "explanation/architecture-overview" },
-						{ label: "Policy Execution Pipeline", slug: "explanation/policy-execution" },
-						{ label: "Authentication & Authorization", slug: "explanation/authentication-authorization" },
+						{
+							label: "Architecture Overview",
+							slug: "explanation/architecture-overview",
+						},
+						{
+							label: "Policy Execution Pipeline",
+							slug: "explanation/policy-execution",
+						},
+						{
+							label: "Authentication & Authorization",
+							slug: "explanation/authentication-authorization",
+						},
 						{
 							label: "Why Azure API Management?",
 							slug: "explanation/why-azure-apim",
@@ -82,7 +111,10 @@ starlight({
 				{
 					label: "Reference",
 					items: [
-						{ label: "Zero to Production Cheat Sheet", slug: "reference/zero-to-production" },
+						{
+							label: "Zero to Production Cheat Sheet",
+							slug: "reference/zero-to-production",
+						},
 						{ label: "Makefile Commands", slug: "reference/makefile-commands" },
 						{
 							label: "RFC 9457 Implementation",
@@ -96,10 +128,10 @@ starlight({
 			plugins: [
 				starlightOpenAPI([
 					{
-						base: 'api',
-						schema: './openapi/cars-api.yaml',
+						base: "api",
+						schema: "./openapi/cars-api.yaml",
 						sidebar: {
-							label: 'Cars API',
+							label: "Cars API",
 							collapsed: false,
 						},
 					},

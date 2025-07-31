@@ -1,0 +1,123 @@
+<policies>
+    <inbound>
+        <!-- Operation-specific caching for list cars -->
+        <cache-lookup vary-by-developer="false" vary-by-developer-groups="false" downstream-caching-type="none" />
+        
+        <!-- Request validation -->
+        <set-variable name="page" value="@(context.Request.Url.Query.GetValueOrDefault("page", "1"))" />
+        <set-variable name="pageSize" value="@(context.Request.Url.Query.GetValueOrDefault("pageSize", "10"))" />
+        
+        <!-- Validate query parameters -->
+        <choose>
+            <when condition="@(!int.TryParse((string)context.Variables["page"], out int pageNum) || pageNum < 1)">
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>@{
+                        return new JObject(
+                            new JProperty("type", "https://tools.ietf.org/html/rfc7231#section-6.5.1"),
+                            new JProperty("title", "Bad Request"),
+                            new JProperty("status", 400),
+                            new JProperty("detail", "Invalid page parameter. Must be a positive integer."),
+                            new JProperty("instance", context.Request.Url.Path),
+                            new JProperty("invalid-params", new JArray(
+                                new JObject(
+                                    new JProperty("name", "page"),
+                                    new JProperty("reason", "Must be a positive integer")
+                                )
+                            ))
+                        ).ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@(!int.TryParse((string)context.Variables["pageSize"], out int pageSizeNum) || pageSizeNum < 1 || pageSizeNum > 100)">
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>@{
+                        return new JObject(
+                            new JProperty("type", "https://tools.ietf.org/html/rfc7231#section-6.5.1"),
+                            new JProperty("title", "Bad Request"),
+                            new JProperty("status", 400),
+                            new JProperty("detail", "Invalid pageSize parameter. Must be between 1 and 100."),
+                            new JProperty("instance", context.Request.Url.Path),
+                            new JProperty("invalid-params", new JArray(
+                                new JObject(
+                                    new JProperty("name", "pageSize"),
+                                    new JProperty("reason", "Must be between 1 and 100")
+                                )
+                            ))
+                        ).ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+        </choose>
+        
+        <!-- Add request metadata -->
+        <set-header name="X-Request-ID" exists-action="override">
+            <value>@(Guid.NewGuid().ToString())</value>
+        </set-header>
+        
+        <trace source="get-cars-operation">
+            <message>@{
+                return $"Requesting cars list - Page: {context.Variables["page"]}, PageSize: {context.Variables["pageSize"]}";
+            }</message>
+        </trace>
+    </inbound>
+    
+    <backend>
+        <forward-request />
+    </backend>
+    
+    <outbound>
+        <!-- Cache successful responses -->
+        <choose>
+            <when condition="@(context.Response.StatusCode == 200)">
+                <cache-store duration="${cache_duration}" />
+                
+                <!-- Add pagination headers -->
+                <set-header name="X-Total-Count" exists-action="override">
+                    <value>3</value>
+                </set-header>
+                <set-header name="X-Page" exists-action="override">
+                    <value>@((string)context.Variables["page"])</value>
+                </set-header>
+                <set-header name="X-Page-Size" exists-action="override">
+                    <value>@((string)context.Variables["pageSize"])</value>
+                </set-header>
+                
+                <!-- Add cache headers -->
+                <set-header name="Cache-Control" exists-action="override">
+                    <value>public, max-age=${cache_duration}</value>
+                </set-header>
+                <set-header name="ETag" exists-action="override">
+                    <value>@("\"" + context.Response.Body.As<string>().GetHashCode().ToString() + "\"")</value>
+                </set-header>
+            </when>
+        </choose>
+        
+        <!-- Add response metadata -->
+        <set-header name="X-Response-Time" exists-action="override">
+            <value>@(DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))</value>
+        </set-header>
+        
+        <trace source="get-cars-operation-outbound">
+            <message>@{
+                return $"Cars list response - Status: {context.Response.StatusCode}, Cached: {context.Response.Headers.ContainsKey("Cache-Control")}";
+            }</message>
+        </trace>
+    </outbound>
+    
+    <on-error>
+        <!-- Operation-specific error handling -->
+        <trace source="get-cars-operation-error">
+            <message>@{
+                return $"Error in get-cars operation: {context.LastError.Message}";
+            }</message>
+        </trace>
+    </on-error>
+</policies>

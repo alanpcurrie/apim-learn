@@ -1,0 +1,296 @@
+<policies>
+    <inbound>
+        <!-- Rate limiting policy -->
+        <rate-limit calls="${rate_limit_calls}" renewal-period="${rate_limit_period}" />
+        
+        <!-- CORS policy -->
+        <cors allow-credentials="false">
+            <allowed-origins>
+                %{ for origin in split(",", cors_allowed_origins) }
+                <origin>${origin}</origin>
+                %{ endfor }
+            </allowed-origins>
+            <allowed-methods>
+                <method>GET</method>
+                <method>POST</method>
+                <method>PUT</method>
+                <method>DELETE</method>
+                <method>HEAD</method>
+                <method>OPTIONS</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>*</header>
+            </allowed-headers>
+        </cors>
+        
+        %{ if enable_jwt_auth }
+        <!-- JWT validation policy (conditional) -->
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Access token is missing or invalid.">
+            <openid-config url="${jwt_issuer}/.well-known/openid-configuration" />
+            <audiences>
+                <audience>${jwt_audience}</audience>
+            </audiences>
+            <required-claims>
+                <claim name="aud" match="any">
+                    <value>${jwt_audience}</value>
+                </claim>
+            </required-claims>
+        </validate-jwt>
+        %{ endif }
+        
+        <!-- Set backend URL for mock responses -->
+        <set-backend-service base-url="https://httpbin.org" />
+        
+        <!-- Add request tracing -->
+        <trace source="global-policy">
+            <message>@{
+                return new JObject(
+                    new JProperty("timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")),
+                    new JProperty("method", context.Request.Method),
+                    new JProperty("url", context.Request.Url.ToString()),
+                    new JProperty("headers", context.Request.Headers.ToDictionary(h => h.Key, h => h.Value)),
+                    new JProperty("subscription", context.Subscription?.Name ?? "none")
+                ).ToString();
+            }</message>
+        </trace>
+    </inbound>
+    
+    <backend>
+        <!-- Mock responses for Cars API -->
+        <choose>
+            <when condition="@(context.Request.Url.Path.EndsWith("/cars") && context.Request.Method == "GET")">
+                <return-response>
+                    <set-status code="200" reason="OK" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@{
+                        var carsResponse = new JObject(
+                            new JProperty("cars", new JArray(
+                                new JObject(
+                                    new JProperty("id", 1),
+                                    new JProperty("make", "Dodge"),
+                                    new JProperty("model", "Charger R/T"),
+                                    new JProperty("year", 1970),
+                                    new JProperty("color", "Black"),
+                                    new JProperty("driver", "Dominic Toretto"),
+                                    new JProperty("horsepower", 440),
+                                    new JProperty("quarter_mile", "9.8 seconds")
+                                ),
+                                new JObject(
+                                    new JProperty("id", 2),
+                                    new JProperty("make", "Nissan"),
+                                    new JProperty("model", "Skyline GT-R R34"),
+                                    new JProperty("year", 1999),
+                                    new JProperty("color", "Blue"),
+                                    new JProperty("driver", "Brian O'Conner"),
+                                    new JProperty("horsepower", 330),
+                                    new JProperty("quarter_mile", "10.2 seconds")
+                                ),
+                                new JObject(
+                                    new JProperty("id", 3),
+                                    new JProperty("make", "Toyota"),
+                                    new JProperty("model", "Supra"),
+                                    new JProperty("year", 1994),
+                                    new JProperty("color", "Orange"),
+                                    new JProperty("driver", "Brian O'Conner"),
+                                    new JProperty("horsepower", 320),
+                                    new JProperty("quarter_mile", "10.4 seconds")
+                                )
+                            )),
+                            new JProperty("total", 3),
+                            new JProperty("page", 1),
+                            new JProperty("pageSize", 10)
+                        );
+                        return carsResponse.ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@(context.Request.Url.Path.Contains("/cars/") && context.Request.Method == "GET")">
+                <return-response>
+                    <set-status code="200" reason="OK" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@{
+                        var carId = context.Request.Url.Path.Split('/').Last();
+                        var car = new JObject();
+                        
+                        switch(carId) {
+                            case "1":
+                                car = new JObject(
+                                    new JProperty("id", 1),
+                                    new JProperty("make", "Dodge"),
+                                    new JProperty("model", "Charger R/T"),
+                                    new JProperty("year", 1970),
+                                    new JProperty("color", "Black"),
+                                    new JProperty("driver", "Dominic Toretto"),
+                                    new JProperty("horsepower", 440),
+                                    new JProperty("quarter_mile", "9.8 seconds"),
+                                    new JProperty("engine", "7.2L V8 HEMI"),
+                                    new JProperty("transmission", "3-speed automatic"),
+                                    new JProperty("top_speed", "145 mph")
+                                );
+                                break;
+                            case "2":
+                                car = new JObject(
+                                    new JProperty("id", 2),
+                                    new JProperty("make", "Nissan"),
+                                    new JProperty("model", "Skyline GT-R R34"),
+                                    new JProperty("year", 1999),
+                                    new JProperty("color", "Blue"),
+                                    new JProperty("driver", "Brian O'Conner"),
+                                    new JProperty("horsepower", 330),
+                                    new JProperty("quarter_mile", "10.2 seconds"),
+                                    new JProperty("engine", "2.6L Twin-Turbo I6"),
+                                    new JProperty("transmission", "6-speed manual"),
+                                    new JProperty("top_speed", "165 mph")
+                                );
+                                break;
+                            case "3":
+                                car = new JObject(
+                                    new JProperty("id", 3),
+                                    new JProperty("make", "Toyota"),
+                                    new JProperty("model", "Supra"),
+                                    new JProperty("year", 1994),
+                                    new JProperty("color", "Orange"),
+                                    new JProperty("driver", "Brian O'Conner"),
+                                    new JProperty("horsepower", 320),
+                                    new JProperty("quarter_mile", "10.4 seconds"),
+                                    new JProperty("engine", "3.0L Twin-Turbo I6"),
+                                    new JProperty("transmission", "6-speed manual"),
+                                    new JProperty("top_speed", "155 mph")
+                                );
+                                break;
+                            default:
+                                return new JObject(
+                                    new JProperty("type", "https://tools.ietf.org/html/rfc9457"),
+                                    new JProperty("title", "Car Not Found"),
+                                    new JProperty("status", 404),
+                                    new JProperty("detail", $"Car with ID '{carId}' was not found."),
+                                    new JProperty("instance", context.Request.Url.Path)
+                                ).ToString();
+                        }
+                        return car.ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+            <otherwise>
+                <forward-request />
+            </otherwise>
+        </choose>
+    </backend>
+    
+    <outbound>
+        <!-- Security headers -->
+        <set-header name="X-Content-Type-Options" exists-action="override">
+            <value>nosniff</value>
+        </set-header>
+        <set-header name="X-Frame-Options" exists-action="override">
+            <value>DENY</value>
+        </set-header>
+        <set-header name="X-XSS-Protection" exists-action="override">
+            <value>1; mode=block</value>
+        </set-header>
+        <set-header name="Strict-Transport-Security" exists-action="override">
+            <value>max-age=31536000; includeSubDomains</value>
+        </set-header>
+        <set-header name="Referrer-Policy" exists-action="override">
+            <value>strict-origin-when-cross-origin</value>
+        </set-header>
+        
+        <!-- Remove backend server headers -->
+        <set-header name="Server" exists-action="delete" />
+        <set-header name="X-Powered-By" exists-action="delete" />
+        
+        <!-- Add API version header -->
+        <set-header name="API-Version" exists-action="override">
+            <value>v1</value>
+        </set-header>
+        
+        <!-- Response tracing -->
+        <trace source="global-policy-outbound">
+            <message>@{
+                return new JObject(
+                    new JProperty("timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")),
+                    new JProperty("status", context.Response.StatusCode),
+                    new JProperty("headers", context.Response.Headers.ToDictionary(h => h.Key, h => h.Value))
+                ).ToString();
+            }</message>
+        </trace>
+    </outbound>
+    
+    <on-error>
+        <!-- RFC 9457 compliant error responses -->
+        <choose>
+            <when condition="@(context.Response.StatusCode == 429)">
+                <return-response>
+                    <set-status code="429" reason="Too Many Requests" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>@{
+                        return new JObject(
+                            new JProperty("type", "https://tools.ietf.org/html/rfc6585#section-4"),
+                            new JProperty("title", "Too Many Requests"),
+                            new JProperty("status", 429),
+                            new JProperty("detail", "Rate limit exceeded. Please try again later."),
+                            new JProperty("instance", context.Request.Url.Path)
+                        ).ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@(context.Response.StatusCode == 401)">
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>@{
+                        return new JObject(
+                            new JProperty("type", "https://tools.ietf.org/html/rfc7235#section-3.1"),
+                            new JProperty("title", "Unauthorized"),
+                            new JProperty("status", 401),
+                            new JProperty("detail", "Authentication required. Please provide a valid subscription key."),
+                            new JProperty("instance", context.Request.Url.Path)
+                        ).ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@(context.Response.StatusCode == 403)">
+                <return-response>
+                    <set-status code="403" reason="Forbidden" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>@{
+                        return new JObject(
+                            new JProperty("type", "https://tools.ietf.org/html/rfc7231#section-6.5.3"),
+                            new JProperty("title", "Forbidden"),
+                            new JProperty("status", 403),
+                            new JProperty("detail", "Access denied. Your subscription does not have access to this API."),
+                            new JProperty("instance", context.Request.Url.Path)
+                        ).ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="500" reason="Internal Server Error" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>@{
+                        return new JObject(
+                            new JProperty("type", "https://tools.ietf.org/html/rfc7231#section-6.6.1"),
+                            new JProperty("title", "Internal Server Error"),
+                            new JProperty("status", 500),
+                            new JProperty("detail", "An unexpected error occurred while processing your request."),
+                            new JProperty("instance", context.Request.Url.Path)
+                        ).ToString();
+                    }</set-body>
+                </return-response>
+            </otherwise>
+        </choose>
+    </on-error>
+</policies>

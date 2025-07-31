@@ -1,0 +1,192 @@
+name: 'Terraform Infrastructure Deployment'
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  TF_VERSION: '1.7.0'
+  ARM_USE_OIDC: true
+  ARM_USE_CLI: false
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    # Use OIDC authentication
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Terraform Format Check
+      id: fmt
+      run: terraform fmt -check -recursive
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      run: |
+        terraform init \
+          -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP }}" \
+          -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+          -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+          -backend-config="key=apim-infrastructure.tfstate"
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan')
+      run: |
+        terraform plan -no-color -input=false \
+          -var="resource_group_name=${{ secrets.APIM_RESOURCE_GROUP }}" \
+          -var="apim_service_name=${{ secrets.APIM_SERVICE_NAME }}" \
+          -var="location=${{ secrets.AZURE_LOCATION }}" \
+          -var="publisher_email=${{ secrets.PUBLISHER_EMAIL }}" \
+          -var="publisher_name=${{ secrets.PUBLISHER_NAME }}" \
+          -var="api_id=${{ vars.API_ID || 'cars-api' }}" \
+          -out=tfplan
+      continue-on-error: true
+
+    - name: Update Pull Request
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+          <details><summary>Show Plan</summary>
+
+          \`\`\`\n
+          ${process.env.PLAN}
+          \`\`\`
+
+          </details>
+
+          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
+      run: |
+        terraform apply -auto-approve -input=false \
+          -var="resource_group_name=${{ secrets.APIM_RESOURCE_GROUP }}" \
+          -var="apim_service_name=${{ secrets.APIM_SERVICE_NAME }}" \
+          -var="location=${{ secrets.AZURE_LOCATION }}" \
+          -var="publisher_email=${{ secrets.PUBLISHER_EMAIL }}" \
+          -var="publisher_name=${{ secrets.PUBLISHER_NAME }}" \
+          -var="api_id=${{ vars.API_ID || 'cars-api' }}"
+
+    - name: Terraform Destroy
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+      run: |
+        terraform destroy -auto-approve -input=false \
+          -var="resource_group_name=${{ secrets.APIM_RESOURCE_GROUP }}" \
+          -var="apim_service_name=${{ secrets.APIM_SERVICE_NAME }}" \
+          -var="location=${{ secrets.AZURE_LOCATION }}" \
+          -var="publisher_email=${{ secrets.PUBLISHER_EMAIL }}" \
+          -var="publisher_name=${{ secrets.PUBLISHER_NAME }}" \
+          -var="api_id=${{ vars.API_ID || 'cars-api' }}"
+
+  api-deployment:
+    name: 'Deploy API Configuration'
+    runs-on: ubuntu-latest
+    needs: terraform
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Lint OpenAPI Specification
+      run: npm run lint
+
+    - name: Deploy API using Makefile
+      env:
+        RG: ${{ secrets.APIM_RESOURCE_GROUP }}
+        APIM: ${{ secrets.APIM_SERVICE_NAME }}
+        API_ID: ${{ vars.API_ID || 'cars-api' }}
+      run: make deploy-safe
