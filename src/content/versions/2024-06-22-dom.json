@@ -1,0 +1,40 @@
+{
+  "sidebar": [
+    {
+      "label": "Overview",
+      "items": [
+        { "label": "Welcome", "link": "/" },
+        {
+          "label": "Documentation Structure",
+          "link": "/documentation-structure/"
+        }
+      ]
+    },
+    {
+      "label": "Tutorials",
+      "items": [
+        { "label": "Getting Started", "link": "/tutorials/01-getting-started/" },
+        {
+          "label": "Provision Azure Resources",
+          "link": "/tutorials/02-provision-azure-resources/"
+        },
+        {
+          "label": "Understanding Policies",
+          "link": "/tutorials/03-understanding-policies/"
+        }
+      ]
+    },
+    {
+      "label": "How-To Guides",
+      "autogenerate": { "directory": "how-to" }
+    },
+    {
+      "label": "Explanation",
+      "autogenerate": { "directory": "explanation" }
+    },
+    {
+      "label": "Reference",
+      "autogenerate": { "directory": "reference" }
+    }
+  ]
+}

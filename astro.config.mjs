@@ -3,9 +3,17 @@ import mermaid from "astro-mermaid";
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlightOpenAPI, { openAPISidebarGroups } from "starlight-openapi";
+import starlightVersions from "starlight-versions";
 
 // https://astro.build/config
 export default defineConfig({
+	vite: {
+		resolve: {
+			alias: {
+				"~": "/src",
+			},
+		},
+	},
 	integrations: [
 		mermaid({
 			theme: "forest",
@@ -117,6 +125,10 @@ export default defineConfig({
 						},
 						{ label: "Makefile Commands", slug: "reference/makefile-commands" },
 						{
+							label: "API Design Philosophy",
+							slug: "reference/api-design-philosophy",
+						},
+						{
 							label: "RFC 9457 Implementation",
 							slug: "rfc9457-implementation",
 						},
@@ -126,6 +138,11 @@ export default defineConfig({
 				...openAPISidebarGroups,
 			],
 			plugins: [
+				starlightVersions({
+					versions: [
+						{ slug: "2024-06-22-dom", label: "2024-06-22.dom" }
+					],
+				}),
 				starlightOpenAPI([
 					{
 						base: "api",
